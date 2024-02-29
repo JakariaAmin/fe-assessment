@@ -70,7 +70,8 @@ const placeAutocompleteSlice = createSlice(
 
       // Reducer for updating placeAutocomplete list after a successful resource fetch.
       fetchPlaceAutocompleteSuccess(state, action) {
-        state.isFetching = false;
+        state.isShowDropdown = true;
+        state.isFetching     = false;
 
         // Keep record of user searches. Prevent duplicate entry of user searches history.
         if (!state.searches.includes(action.payload.input)) {
@@ -80,29 +81,27 @@ const placeAutocompleteSlice = createSlice(
         // Get server api call result of place autocomplete.
         const predictions: [] = action.payload.response?.data?.predictions;
 
-        // Run through place autocomplete result and store in list state.
-        if (Array.isArray(predictions) && predictions.length) {
-          state.list = [
-            ...state
-              .searches
-              .filter(word => word.includes(action.payload.input))
-              .map(obj => {
-                return {
-                  title       : obj,
-                  coordinates : {lat: 0, lng: 0},
-                  isPastSearch: true,
-                }
-              }),
-
-            ...predictions.map(obj => {
+        state.list = [
+          ...state
+            .searches
+            .filter(word => word.includes(action.payload.input))
+            .map(obj => {
               return {
-                title       : obj['description'],
+                title       : obj,
                 coordinates : {lat: 0, lng: 0},
-                isPastSearch: false,
+                isPastSearch: true,
               }
             }),
-          ];
-        }
+
+          // Run through place autocomplete result and store in list state.
+          ...Array.isArray(predictions) && predictions.length ? predictions.map(obj => {
+            return {
+              title       : obj['description'],
+              coordinates : {lat: 0, lng: 0},
+              isPastSearch: false,
+            }
+          }) : [],
+        ];
       },
 
       // Reducer for updating placeAutocomplete list after a failed resource fetch.
